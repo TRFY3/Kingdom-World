@@ -15,6 +15,8 @@ local T=W:MakeTab({
 
 local RS=game:GetService("RunService")
 local drift=false
+local lift=false
+local roll=0
 local con
 
 T:AddToggle({
@@ -60,5 +62,64 @@ T:AddToggle({
 		end
 	end
 })
+
+T:AddToggle({
+	Name="الترفيع 🔥",
+	Default=false,
+	Callback=function(v)
+		lift=v
+	end
+})
+
+local function Car()
+	local C=game.Players.LocalPlayer.Character
+	if not C then return end
+
+	local H=C:FindFirstChildOfClass("Humanoid")
+	if not H or not H.SeatPart then return end
+
+	return H.SeatPart:FindFirstAncestorOfClass("Model"),H.SeatPart
+end
+
+local function Setup(root)
+	local gyro=root:FindFirstChild("Gyro")
+
+	if not gyro then
+		gyro=Instance.new("BodyGyro")
+		gyro.Name="Gyro"
+		gyro.MaxTorque=Vector3.new(0,0,4e8)
+		gyro.P=7000
+		gyro.D=1200
+		gyro.Parent=root
+	end
+
+	return gyro
+end
+
+RS.RenderStepped:Connect(function()
+	local car,seat=Car()
+	if not car or not seat then return end
+
+	if not car.PrimaryPart then
+		car.PrimaryPart=seat
+	end
+
+	local root=car.PrimaryPart
+	local gyro=Setup(root)
+
+	-- ترفيع ناعم الكفرات اليمنى
+	local target=lift and -55 or 0
+	roll=roll+((target-roll)*0.05)
+
+	local yaw=math.rad(root.Orientation.Y)
+
+	gyro.CFrame=
+		CFrame.new(root.Position)*
+		CFrame.Angles(
+			0,
+			yaw,
+			math.rad(roll)
+		)
+end)
 
 O:Init()
