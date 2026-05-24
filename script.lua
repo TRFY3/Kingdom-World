@@ -1,3 +1,6 @@
+-- R On Top 🔥 - Kingdom World Script
+-- Loaded via loadstring from GitHub
+
 local O=loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
 
 local W=O:MakeWindow({
