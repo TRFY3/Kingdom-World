@@ -2,20 +2,17 @@ local O=loadstring(game:HttpGet("https://raw.githubusercontent.com/jensonhirst/O
 local W=O:MakeWindow({Name="R On Top 🔥",HidePremium=false,SaveConfig=false})
 local T=W:MakeTab({Name="Car"})
 local RS=game:GetService("RunService")
-local Player=game.Players.LocalPlayer
-local lift=false
-local drift=false
-local roll=0
+local P=game.Players.LocalPlayer
+local lift,drift,nitro=false,false,false
+local roll,maxSpeed,normalSpeed,currentSpeed=0,450,80,80
 local driftConnection
-
 local function GetCar()
-	local C=Player.Character
+	local C=P.Character
 	if not C then return end
 	local H=C:FindFirstChildOfClass("Humanoid")
 	if not H or not H.SeatPart then return end
 	return H.SeatPart:FindFirstAncestorOfClass("Model"),H.SeatPart
 end
-
 local function SetupGyro(root)
 	local gyro=root:FindFirstChild("Gyro")
 	if not gyro then
@@ -28,7 +25,6 @@ local function SetupGyro(root)
 	end
 	return gyro
 end
-
 T:AddToggle({Name="تفحيط 🔥",Default=false,Callback=function(v)
 	drift=v
 	if drift then
@@ -36,12 +32,9 @@ T:AddToggle({Name="تفحيط 🔥",Default=false,Callback=function(v)
 		if driftConnection then driftConnection:Disconnect() end
 		driftConnection=RS.Heartbeat:Connect(function()
 			local car=workspace:FindFirstChildWhichIsA("VehicleSeat",true)
-			if car and car.Occupant and car.Occupant.Parent==Player.Character then
-				local p=car.Parent
-				for _,x in pairs(p:GetDescendants()) do
-					if x:IsA("BasePart") then
-						x.CustomPhysicalProperties=PhysicalProperties.new(0.7,0.1,0.5,1,1)
-					end
+			if car and car.Occupant and car.Occupant.Parent==P.Character then
+				for _,x in pairs(car.Parent:GetDescendants()) do
+					if x:IsA("BasePart") then x.CustomPhysicalProperties=PhysicalProperties.new(0.7,0.1,0.5,1,1) end
 				end
 			end
 		end)
@@ -50,9 +43,8 @@ T:AddToggle({Name="تفحيط 🔥",Default=false,Callback=function(v)
 		if driftConnection then driftConnection:Disconnect() end
 	end
 end})
-
 T:AddToggle({Name="ترفيع 🔥",Default=false,Callback=function(v)lift=v end})
-
+T:AddToggle({Name="نيترو 💨",Default=false,Callback=function(v)nitro=v end})
 RS.RenderStepped:Connect(function()
 	local car,seat=GetCar()
 	if not car or not seat then return end
@@ -61,8 +53,8 @@ RS.RenderStepped:Connect(function()
 	local gyro=SetupGyro(root)
 	local target=lift and -55 or 0
 	roll=roll+((target-roll)*0.05)
-	local yaw=math.rad(root.Orientation.Y)
-	gyro.CFrame=CFrame.new(root.Position)*CFrame.Angles(0,yaw,math.rad(roll))
+	gyro.CFrame=CFrame.new(root.Position)*CFrame.Angles(0,math.rad(root.Orientation.Y),math.rad(roll))
+	currentSpeed=nitro and math.min(currentSpeed+8,maxSpeed) or math.max(currentSpeed-6,normalSpeed)
+	seat.AssemblyLinearVelocity=seat.CFrame.LookVector*currentSpeed
 end)
-
 O:Init()
